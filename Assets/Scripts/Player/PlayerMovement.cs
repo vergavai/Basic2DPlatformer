@@ -1,18 +1,82 @@
-using System.Collections;
-using System.Collections.Generic;
+using System;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class PlayerMovement : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    [SerializeField] private float _speed;
+    [SerializeField] private float _jumpSpeed;
+
+    private Animator _animator;
+    private Rigidbody2D _rigidbody;
+    private TouchingDirections _touchingDirections;
+    private Vector2 _moveInput;
+    private bool _isFacingRight = true;
+    
+    private void Awake()
     {
+        _animator = GetComponent<Animator>();
+        _rigidbody = GetComponent<Rigidbody2D>();
+        _touchingDirections = GetComponent<TouchingDirections>();
+    }
+    
+    private void FixedUpdate()
+    {
+        _rigidbody.velocity = new Vector2(_moveInput.x * _speed, _rigidbody.velocity.y);
+    }
+
+    private void Update()
+    {
+        if (_touchingDirections.IsGrounded)
+        {
+            Jump();
+        }
+        
+        MoveInDirection();
+        SetFacingDirection();
+        SetAnimatorParameters();
+    }
+
+    private void MoveInDirection()
+    {
+        if (Input.GetKey(KeyCode.A))
+        {
+            _moveInput.x = -1;
+            
+        }
+        else if (Input.GetKey(KeyCode.D))
+        {
+            _moveInput.x = 1;
+        }
+        else
+        {
+            _moveInput.x = 0;
+        }
         
     }
 
-    // Update is called once per frame
-    void Update()
+    private void SetAnimatorParameters()
     {
-        
+        _animator.SetBool(AnimationStrings.IsGrounded, _touchingDirections.IsGrounded);
+        _animator.SetBool(AnimationStrings.IsMoving, _moveInput != Vector2.zero);
     }
+
+    private void Jump()
+    {
+        if (Input.GetKey(KeyCode.Space))
+        {
+            _rigidbody.velocity = new Vector2(_rigidbody.velocity.x, _jumpSpeed);
+            
+            _animator.SetTrigger(AnimationStrings.Jump);
+        }
+    }
+    
+    private void SetFacingDirection()
+    {
+        if (_rigidbody.velocity.x > 0)
+            transform.eulerAngles = new Vector3(0, 0, 0); 
+        else if (_rigidbody.velocity.x < 0)
+            transform.eulerAngles = new Vector3(0, 180, 0); 
+    }
+    
 }
