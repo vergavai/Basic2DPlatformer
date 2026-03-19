@@ -1,6 +1,4 @@
-using System;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -27,13 +25,10 @@ public class PlayerMovement : MonoBehaviour
 
     private void Update()
     {
-        if (_touchingDirections.IsGrounded)
-        {
-            Jump();
-        }
-        
+        Jump();
         MoveInDirection();
-        SetFacingDirection();
+        
+        ChangeDirection();
         SetAnimatorParameters();
     }
 
@@ -48,7 +43,7 @@ public class PlayerMovement : MonoBehaviour
         {
             _moveInput.x = 1;
         }
-        else
+        else if(_touchingDirections.IsGrounded)
         {
             _moveInput.x = 0;
         }
@@ -63,7 +58,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void Jump()
     {
-        if (Input.GetKey(KeyCode.Space))
+        if (Input.GetKey(KeyCode.Space) && _touchingDirections.IsGrounded)
         {
             _rigidbody.velocity = new Vector2(_rigidbody.velocity.x, _jumpSpeed);
             
@@ -71,7 +66,7 @@ public class PlayerMovement : MonoBehaviour
         }
     }
     
-    private void SetFacingDirection()
+    private void ChangeDirection()
     {
         if (_rigidbody.velocity.x > 0)
             transform.eulerAngles = new Vector3(0, 0, 0); 
