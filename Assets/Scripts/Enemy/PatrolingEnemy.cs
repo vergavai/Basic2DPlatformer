@@ -20,15 +20,15 @@ public class PatrolingEnemy : MonoBehaviour
 
         if (_direction == 1 && transform.position.x >= _patrolPoint.position.x + _patrolDistance)
         {
-            Flip();
+            FlipDirection();
         }
         else if (_direction == -1 && transform.position.x <= _patrolPoint.position.x - _patrolDistance)
         {
-            Flip();
+            FlipDirection();
         }
     }
 
-    private void Flip()
+    private void FlipDirection()
     {
         _direction *= -1;
         transform.Rotate(0f, 180f, 0f);
