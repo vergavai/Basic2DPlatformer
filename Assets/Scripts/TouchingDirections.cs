@@ -18,7 +18,7 @@ public class TouchingDirections : MonoBehaviour
         _touchingCollider = GetComponent<Collider2D>();
     }
 
-    private void Update()
+    private void FixedUpdate()
     {
         _isGrounded = _touchingCollider.Cast(Vector2.down, castFilter, _groundHits, _groundDistance) > 0;
     }

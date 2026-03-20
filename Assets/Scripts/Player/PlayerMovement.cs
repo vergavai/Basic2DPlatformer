@@ -1,79 +1,70 @@
 using UnityEngine;
 
-public class PlayerMovement : MonoBehaviour
+namespace Player
 {
-    [SerializeField] private float _speed;
-    [SerializeField] private float _jumpSpeed;
-
-    private const int FacingRight = 1;
-    private const int FacingLeft = -1;
-    private const int NotMoving = 0;
-
-    private Animator _animator;
-    private Rigidbody2D _rigidbody;
-    private TouchingDirections _touchingDirections;
-    private int _direction;
-
-    private void Awake()
+    [RequireComponent(typeof(Rigidbody2D))]
+    public class PlayerMovement : MonoBehaviour
     {
-        _animator = GetComponent<Animator>();
-        _rigidbody = GetComponent<Rigidbody2D>();
-        _touchingDirections = GetComponent<TouchingDirections>();
-    }
+        [SerializeField] private float _speed;
+        [SerializeField] private float _jumpSpeed;
 
-    private void FixedUpdate()
-    {
-        _rigidbody.velocity = new Vector2(_direction * _speed, _rigidbody.velocity.y);
-    }
+        private const int FacingRight = 1;
+        private const int FacingLeft = -1;
+        private const int NotMoving = 0;
+        private const string HorizontalAxis = "Horizontal";
 
-    private void Update()
-    {
-        Jump();
-        MoveInDirection();
+        private Animator _animator;
+        private Rigidbody2D _rigidbody;
+        private TouchingDirections _touchingDirections;
+        private int _direction;
+        private float _horizontalInput;
+        private bool _jumped;
 
-        FlipDirection();
-        SetAnimatorParameters();
-    }
-
-    private void MoveInDirection()
-    {
-        if (Input.GetKey(KeyCode.A))
+        private void Awake()
         {
-            _direction = -1;
+            _animator = GetComponent<Animator>();
+            _rigidbody = GetComponent<Rigidbody2D>();
+            _touchingDirections = GetComponent<TouchingDirections>();
         }
-        else if (Input.GetKey(KeyCode.D))
+
+        private void FixedUpdate()
         {
-            _direction = 1;
+            _rigidbody.velocity = new Vector2(_horizontalInput * _speed, _rigidbody.velocity.y);
+            
+            if (_jumped)
+            {
+                _rigidbody.velocity = new Vector2(_rigidbody.velocity.x, _jumpSpeed);
+                
+                _animator.SetTrigger(AnimationStrings.Jump);
+                _jumped = false;
+            }
         }
-        else if (_touchingDirections.IsGrounded)
+
+        private void Update()
         {
-            _direction = 0;
+            _horizontalInput = Input.GetAxisRaw(HorizontalAxis);
+            _jumped = Input.GetKey(KeyCode.Space) && _touchingDirections.IsGrounded;
+
+            FlipDirection();
+            SetAnimatorParameters();
         }
-    }
 
-    private void SetAnimatorParameters()
-    {
-        _animator.SetBool(AnimationStrings.IsGrounded, _touchingDirections.IsGrounded);
-        _animator.SetBool(AnimationStrings.IsMoving, _direction != NotMoving);
-    }
-
-    private void Jump()
-    {
-        if (Input.GetKey(KeyCode.Space) && _touchingDirections.IsGrounded)
+        private void SetAnimatorParameters()
         {
-            _rigidbody.velocity = new Vector2(_rigidbody.velocity.x, _jumpSpeed);
-
-            _animator.SetTrigger(AnimationStrings.Jump);
+            _animator.SetBool(AnimationStrings.IsGrounded, _touchingDirections.IsGrounded);
+            _animator.SetBool(AnimationStrings.IsMoving, _horizontalInput != NotMoving);
         }
-    }
 
-    private void FlipDirection()
-    {
-        transform.eulerAngles = _direction switch
+        private void FlipDirection()
         {
-            FacingRight => new Vector3(0, 0, 0),
-            FacingLeft => new Vector3(0, 180f, 0),
-            _ => transform.eulerAngles
-        };
+            transform.localScale = _horizontalInput switch
+            {
+                FacingRight => new Vector3(Mathf.Abs(transform.localScale.x), transform.localScale.y,
+                    transform.localScale.z),
+                FacingLeft => new Vector3(-Mathf.Abs(transform.localScale.x), transform.localScale.y,
+                    transform.localScale.z),
+                _ => transform.localScale
+            };
+        }
     }
 }
